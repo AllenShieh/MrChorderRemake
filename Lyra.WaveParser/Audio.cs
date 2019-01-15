@@ -3,7 +3,7 @@
     using System;
     using AForge.Math;
     using NAudio.Wave;
-    using Training;
+    // using Training;
     using System.Collections.Generic;
 
     // Audio file reader.
@@ -22,7 +22,7 @@
         // Error of audio file.
         private AUDIO_ERROR Err = AUDIO_ERROR.NONE;
 
-        private LearningModel learningModel;
+        // private LearningModel learningModel;
 
         // Max value of int.
         private const long MAX_INT = 2147483647;
@@ -221,7 +221,9 @@
             // This count is used to generate more samples.
             // For example, divide each note into 128 notes, so that we have 128 samples for each note detected.
             const int count = 128;
+            const int features = 1024;
             double[][] result = new double[count * peakCount][];
+            int l = 0;
             for (int i = 0; i < peakCount; i++)
             {
                 int index = onsetTime[i];
@@ -230,15 +232,22 @@
                 for (int j = 0; j < count && index < this.data.Length - this.fftLength; ++j, index += this.fftLength / count)
                 {
                     fftData = GetFFTResult(index);
-                    result[i * peakCount + j] = fftData; // Total number of samples should be count*peakCount.
+                    // result[i * count + j] = fftData; // Total number of samples should be count*peakCount.
+                    result[i * count + j] = new double[features];
+                    Array.Copy(fftData, result[i * count + j], features);
+                    l++;
                 }
             }
-            return result;
+            l = 2000; // Set the number of samples returned.
+            double[][] data_return = new double[l][];
+            Array.Copy(result, data_return, l);
+            return data_return;
         }
 
         /* Get result notes from audio.
          * indices: Onset time.
          */
+         /*
         public int[] GetNotes(int[] indices, int length)
         {
             if(Err != AUDIO_ERROR.NONE)
@@ -263,6 +272,7 @@
 
             return result;
         }
+        */
 
         private int GetMostMember(int[] numbers)
         {

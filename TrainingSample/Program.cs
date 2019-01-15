@@ -8,7 +8,7 @@ namespace TrainingSample
     {
         static void Main(string[] args)
         {
-            
+            /*
             for (int i = 1; i <= 8; i++)
             {
                 string training_file = "C:\\UCLA\\MrChorder-master\\MrChorder\\Training\\LearningModelData\\piano"+i.ToString()+".wav";
@@ -20,6 +20,9 @@ namespace TrainingSample
                 double[][] FAData = od.GenerateFAData();
                 Console.WriteLine("FA Data generated.");
             }
+            */
+
+            LearningModel svm = new LearningModel();
             /*
             string training_file = "C:\\UCLA\\MrChorder-master\\MrChorder\\Training\\LearningModelData\\piano4.wav";
             OnsetDetector od = new OnsetDetector(training_file);
@@ -32,6 +35,7 @@ namespace TrainingSample
             Console.WriteLine(res);
             Console.ReadLine();
             */
+            Console.WriteLine("End");
         }
     }
 }

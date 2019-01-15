@@ -224,6 +224,7 @@ namespace OnsetDetection
             return onsetTime;
         }
 
+        /*
         public float[] GenerateNotes()
         {
             // Get onset times.
@@ -249,6 +250,7 @@ namespace OnsetDetection
             }
             return notes;
         }
+        */
 
         // Generate data in the form of frequency/amplitude.
         public double[][] GenerateFAData()
