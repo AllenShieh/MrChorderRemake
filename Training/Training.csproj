@@ -86,12 +86,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\OnsetDetection\OnsetDetection.csproj">
-      <Project>{62600b5e-5763-4220-8f84-86fd499c061e}</Project>
-      <Name>OnsetDetection</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="License-LGPL.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

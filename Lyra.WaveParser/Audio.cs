@@ -3,13 +3,11 @@
     using System;
     using AForge.Math;
     using NAudio.Wave;
-    // using Training;
     using System.Collections.Generic;
 
     // Audio file reader.
     public class Audio
     {
-        
         // Chunk data of wav file.
         public byte[] data { get; set; }
 
@@ -32,6 +30,9 @@
 
         // Max frequency to recognize.
         private const int MAX_FS = 4096;
+
+        // Number of samples returned for each training note.
+        private const int sampleCountEach = 2000;
 
         /* Read wav file
          * filename: File name of audio file.
@@ -232,77 +233,44 @@
                 for (int j = 0; j < count && index < this.data.Length - this.fftLength; ++j, index += this.fftLength / count)
                 {
                     fftData = GetFFTResult(index);
-                    // result[i * count + j] = fftData; // Total number of samples should be count*peakCount.
                     result[i * count + j] = new double[features];
                     Array.Copy(fftData, result[i * count + j], features);
                     l++;
                 }
             }
-            l = 2000; // Set the number of samples returned.
+            l = sampleCountEach; // Set the number of samples returned.
             double[][] data_return = new double[l][];
             Array.Copy(result, data_return, l);
             return data_return;
         }
 
-        /* Get result notes from audio.
-         * indices: Onset time.
-         */
-         /*
-        public int[] GetNotes(int[] indices, int length)
+        public double[][] GetNoteFAData(int onsetTime)
         {
-            if(Err != AUDIO_ERROR.NONE)
+            if (Err != AUDIO_ERROR.NONE)
             {
                 return null;
             }
 
-            int[] result = new int[length];
-            for (int i = 0; i < result.Length; ++i)
+            // This count is used to generate more samples.
+            // For example, divide each note into 128 notes, so that we have 128 samples for each note detected.
+            const int count = 128;
+            const int features = 1024;
+            double[][] result = new double[count][];
+            int l = 0;
+            
+            int index = onsetTime;
+            double[] fftData;
+            // Here length of fftLength is used to transform, so index+fftLength should not exceed the data length.
+            for (int j = 0; j < count && index < this.data.Length - this.fftLength; ++j, index += this.fftLength / count)
             {
-                int index = indices[i];
-                double[][] freqs = this.GetNMaxAmpFreqs(5, index); // Seperate one note into multiple notes.
-                int[] notes = new int[freqs.Length];
-                for(int j = 0; j < notes.Length; ++j)
-                {
-                    notes[j] = this.learningModel.GetNote(freqs[j]);
-                }
-
-                result[i] = this.GetMostMember(notes); // Get result statistically (mostly).
-                
+                fftData = GetFFTResult(index);
+                result[j] = new double[features];
+                Array.Copy(fftData, result[j], features);
+                l++;
             }
-
-            return result;
-        }
-        */
-
-        private int GetMostMember(int[] numbers)
-        {
-            int length = numbers.Length;
-            Dictionary<int, int> dic = new Dictionary<int, int>();
-            for(int i = 0; i < length; ++i)
-            {
-                if (dic.ContainsKey(numbers[i]))
-                {
-                    dic[numbers[i]]++;
-                }
-                else
-                {
-                    dic[numbers[i]] = 0;
-                }
-            }
-
-            int maxKey = 0;
-            int maxValue = 0;
-            dic[0] = 0;
-            foreach(KeyValuePair<int, int> pair in dic)
-            {
-                if(pair.Value > maxValue)
-                {
-                    maxKey = pair.Key;
-                    maxValue = pair.Value;
-                }
-            }
-
-            return maxKey;
+            double[][] data_return = new double[l][];
+            Array.Copy(result, data_return, l);
+            return data_return;
         }
 
         public string GetError()

@@ -65,6 +65,10 @@
       <Project>{be92697f-a92c-4e88-b1c8-29f00600d08a}</Project>
       <Name>Lyra.WaveParser</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Training\Training.csproj">
+      <Project>{42607aba-4d78-405b-a4dc-16025e815844}</Project>
+      <Name>Training</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Lyra.WaveParser;
+using Training;
 
 namespace OnsetDetection
 {
@@ -11,6 +12,8 @@ namespace OnsetDetection
     {
         private Audio audio;
 
+        private LearningModel learningModel;
+        
         // Range of frequency in analysis.
         public int bins { get; set; }
 
@@ -21,8 +24,9 @@ namespace OnsetDetection
 
         public double[] threshold { get; set; }
 
-        public OnsetDetector(string filename)
+        public OnsetDetector(string filename, LearningModel model)
         {
+            learningModel = model;
             audio = new Audio(filename);
             M = audio.data.Length / 256 - 7;
             if(M > 10000)
@@ -223,37 +227,32 @@ namespace OnsetDetection
             
             return onsetTime;
         }
-
-        /*
-        public float[] GenerateNotes()
+        
+        public int[] GenerateNotes()
         {
-            // Get onset times.
             int[] onsetTime = new int[M];
-            int[] tmpTime = PeakPick();
-            int tmp = 0;
+            int[] peakTime = PeakPick();
+            int peakCount = 0;
             for (int i = 0; i < M; i++)
             {
-                if (tmpTime[i] != 0)
+                if (peakTime[i] != 0)
                 {
-                    onsetTime[tmp++] = tmpTime[i] * 256;
+                    onsetTime[peakCount++] = peakTime[i] * 256;
                 }
             }
-            // Get notes.
-            int[] tmps = audio.GetNotes(onsetTime, tmp);
-            float[] notes = new float[tmp - 1];
-            if (tmps != null)
+
+            int[] notes = new int[peakCount];
+            for(int i = 0; i < notes.Length; i++)
             {
-                for (int i = 0; i < tmps.Length - 1; ++i)
-                {
-                    notes[i] = (float)tmps[i];
-                }
+                double[][] noteData = audio.GetNoteFAData(onsetTime[i]);
+                int[] predict = learningModel.GetNote(noteData);
+                notes[i] = GetMostMember(predict);
             }
             return notes;
         }
-        */
 
         // Generate data in the form of frequency/amplitude.
-        public double[][] GenerateFAData()
+        public double[][] GenerateTrainingFAData()
         {
             int[] onsetTime = new int[M];
             int[] peakTime = PeakPick();
@@ -268,5 +267,35 @@ namespace OnsetDetection
             // Some note counts may be extremely more than expected for now.
             return audio.GetFAData(onsetTime, peakCount);
         }
-    }        
+        
+        private int GetMostMember(int[] numbers)
+        {
+            int length = numbers.Length;
+            Dictionary<int, int> dic = new Dictionary<int, int>();
+            for (int i = 0; i < length; ++i)
+            {
+                if (dic.ContainsKey(numbers[i]))
+                {
+                    dic[numbers[i]]++;
+                }
+                else
+                {
+                    dic[numbers[i]] = 0;
+                }
+            }
+
+            int maxKey = -1;
+            int maxValue = -1;
+            foreach (KeyValuePair<int, int> pair in dic)
+            {
+                if (pair.Value > maxValue)
+                {
+                    maxKey = pair.Key;
+                    maxValue = pair.Value;
+                }
+            }
+
+            return maxKey;
+        }
+    }
 }
