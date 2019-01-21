@@ -227,6 +227,18 @@ namespace OnsetDetection
             
             return onsetTime;
         }
+
+        public double[] generateNoteLength(int[] onsetTime, int peakCount)
+        {
+            double[] noteLength = new double[peakCount];
+            for(int i = 0; i < noteLength.Length; i++)
+            {
+                int diff = (i == noteLength.Length - 1) ? audio.data.Length - onsetTime[i] : onsetTime[i + 1] - onsetTime[i];
+                int d = (diff + 1024) / 2048;
+                noteLength[i] = (double)d / 4;
+            }
+            return noteLength;
+        }
         
         public int[] GenerateNotes()
         {
@@ -242,6 +254,7 @@ namespace OnsetDetection
             }
 
             int[] notes = new int[peakCount];
+            double[] noteLength = generateNoteLength(onsetTime, peakCount);
             for(int i = 0; i < notes.Length; i++)
             {
                 double[][] noteData = audio.GetNoteFAData(onsetTime[i]);

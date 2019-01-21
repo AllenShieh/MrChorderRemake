@@ -15,6 +15,8 @@ namespace Training
         private MulticlassSupportVectorLearning<Gaussian> teacher;
         
         public static int noteCount = 8;
+        public static bool doTraining = false;
+        private string modelPath = "C:\\UCLA\\MrChorder-master\\MrChorder\\MrChorder\\Models\\model_svm";
 
         public LearningModel(double[][] inputs, int[] outputs)
         {
@@ -29,50 +31,59 @@ namespace Training
 
         private void TreeTraining(double[][] inputs, int[] outputs)
         {
-            Console.WriteLine("Start tree training.");
-            
-            teacher = new MulticlassSupportVectorLearning<Gaussian>()
+            if (doTraining)
             {
-                Learner = (param) => new SequentialMinimalOptimization<Gaussian>()
+                Console.WriteLine("Start tree training.");
+
+                teacher = new MulticlassSupportVectorLearning<Gaussian>()
                 {
-                    UseKernelEstimation = true
+                    Learner = (param) => new SequentialMinimalOptimization<Gaussian>()
+                    {
+                        UseKernelEstimation = true
+                    }
+                };
+
+                int sampleCount = inputs.Length;
+                int sampleCountDivided = sampleCount / 2;
+                double[][] inputs_training = new double[sampleCountDivided][];
+                int[] outputs_training = new int[sampleCountDivided];
+                double[][] inputs_validating = new double[sampleCountDivided][];
+                int[] outputs_validating = new int[sampleCountDivided];
+
+                for (int i = 0; i < sampleCountDivided; i++)
+                {
+                    inputs_training[i] = inputs[2 * i];
+                    inputs_validating[i] = inputs[2 * i + 1];
+                    outputs_training[i] = outputs[2 * i];
+                    outputs_validating[i] = outputs[2 * i + 1];
                 }
-            };
-            
-            int sampleCount = inputs.Length;
-            int sampleCountDivided = sampleCount / 2;
-            double[][] inputs_training = new double[sampleCountDivided][];
-            int[] outputs_training  = new int[sampleCountDivided];
-            double[][] inputs_validating = new double[sampleCountDivided][];
-            int[] outputs_validating = new int[sampleCountDivided];
 
-            for(int i = 0; i < sampleCountDivided; i++)
-            {
-                inputs_training[i] = inputs[2 * i];
-                inputs_validating[i] = inputs[2 * i + 1];
-                outputs_training[i] = outputs[2 * i];
-                outputs_validating[i] = outputs[2 * i + 1];
+                Console.WriteLine("Learning.");
+                machine = teacher.Learn(inputs_training, outputs_training);
+
+                Console.WriteLine("Deciding.");
+                int[] predicted = machine.Decide(inputs_validating);
+                /*
+                double[] scores = machine.Score(inputs);
+
+                double error = new ZeroOneLoss(outputs).Loss(predicted);
+
+                Console.WriteLine(error);
+                Console.WriteLine(answer);
+
+                for(int i = 0; i < sampleCountDivided; i++)
+                {
+                    Console.WriteLine("{0:D} {1:D}", outputs_validating[i], predicted[i]);
+                }
+                */
+                Console.WriteLine("Training done.");
+
+                machine.Save(modelPath);
             }
-
-            Console.WriteLine("Learning.");
-            machine = teacher.Learn(inputs_training, outputs_training);
-
-            Console.WriteLine("Deciding.");
-            int[] predicted = machine.Decide(inputs_validating);
-            /*
-            double[] scores = machine.Score(inputs);
-            
-            double error = new ZeroOneLoss(outputs).Loss(predicted);
-
-            Console.WriteLine(error);
-            Console.WriteLine(answer);
-            
-            for(int i = 0; i < sampleCountDivided; i++)
+            else
             {
-                Console.WriteLine("{0:D} {1:D}", outputs_validating[i], predicted[i]);
+                machine = Serializer.Load<MulticlassSupportVectorMachine<Gaussian>>(modelPath);
             }
-            */
-            Console.WriteLine("Training done.");
         }
     }
 }

@@ -29,17 +29,20 @@ namespace TrainingSample
         {
             double[][] inputs = { };
             int[] outputs = { };
-            for (int i = 1; i <= Training.LearningModel.noteCount; i++)
+            if (LearningModel.doTraining)
             {
-                string training_file = "C:\\UCLA\\MrChorder-master\\MrChorder\\Training\\LearningModelData\\piano" + i.ToString() + ".wav";
-                OnsetDetector onsetDetector = new OnsetDetector(training_file, null);
-                double[][] FAData = onsetDetector.GenerateTrainingFAData();
-                inputs = ConcatVector(inputs, FAData);
-                int[] arr = new int[FAData.Length];
-                for (int j = 0; j < arr.Length; j++) arr[j] = i - 1;
-                outputs = ConcatElement(outputs, arr);
+                for (int i = 1; i <= Training.LearningModel.noteCount; i++)
+                {
+                    string training_file = "C:\\UCLA\\MrChorder-master\\MrChorder\\Training\\LearningModelData\\piano" + i.ToString() + ".wav";
+                    OnsetDetector onsetDetector = new OnsetDetector(training_file, null);
+                    double[][] FAData = onsetDetector.GenerateTrainingFAData();
+                    inputs = ConcatVector(inputs, FAData);
+                    int[] arr = new int[FAData.Length];
+                    for (int j = 0; j < arr.Length; j++) arr[j] = i - 1;
+                    outputs = ConcatElement(outputs, arr);
 
-                Console.WriteLine("Training FA Data generated.");
+                    Console.WriteLine("Training FA Data generated.");
+                }
             }
 
             LearningModel svm = new LearningModel(inputs, outputs);
