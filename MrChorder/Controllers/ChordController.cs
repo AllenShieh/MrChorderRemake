@@ -49,9 +49,11 @@ namespace MrChorder.Controllers
             while (!System.IO.File.Exists(resultFilePath))
             {
                 // TODO(allenxie): Fancy work on filename processing.
+                /*
                 OnsetDetector od = new OnsetDetector(filename);
                 float[] notes = od.GenerateNotes();
                 ToPDF.ScoreCreation(imgPath, resultFilePath, notes, notes.Length, (nameElements.Length >= 1) ? nameElements[0] : "UndefinedChordName", (nameElements.Length >= 2) ? nameElements[1] : "Anonymous", (nameElements.Length >= 3) ? nameElements[2] : "Unpredictable Nature");
+                */
             }
             Response.Write("Return file successfully!");
             Response.End();

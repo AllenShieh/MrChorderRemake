@@ -4,6 +4,9 @@ namespace ToPDFSample
 {
     class Program
     {
+        public static string sourcePath = "C:\\UCLA\\MrChorder-master\\MrChorder\\MrChorder\\Images\\";
+        public static string destPath = "C:\\UCLA\\MrChorder-master\\MrChorder\\MrChorder\\Generate\\";
+
         static void Main(string[] args)
         {
 
@@ -15,7 +18,7 @@ namespace ToPDFSample
                 testMusic[n] = n % 20 - 4;
             }
             int size = 50;
-            ToPDF.ScoreCreation("./", "./t1.pdf", testMusic, size, "NAME", "X", "Y", 1);
+            ToPDF PDFGenerator = new ToPDF(destPath+"test.pdf", testMusic, size, "SONG_NAME");
 
         }
     }

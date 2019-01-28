@@ -10,12 +10,19 @@ namespace PDF
         const float headSpace = 4;
         const float scoreRadius = lineSpace / 2;
         const float defaultTempo = 4;
-        const int defaultCount = 4;
+        const int defaultBarCount = 4;
         const float defaultBeginHeight = 100;
         const float defaultIntervalHeight = 80;
         const float defaultBeginLeft = 100;
         const float defaultEndRight = 500;
-        static string imagePath;
+        static string signPath = "C:\\UCLA\\MrChorder-master\\MrChorder\\MrChorder\\Images\\sign.png";
+        static string cornerPath = "C:\\UCLA\\MrChorder-master\\MrChorder\\MrChorder\\Images\\corner.png";
+        Document document;
+
+        public ToPDF(string resultFilePath, float[] testMusic, int size, string name)
+        {
+            ScoreCreation(resultFilePath, testMusic, size, name);
+        }
 
         /* Create the score file.
          * sourcePath: Image resource path.
@@ -23,55 +30,53 @@ namespace PDF
          * testMusic: Music scores.
          * size: Number of scores.
          * name: Music name.
-         * fromName: Whom the music is sent from.
-         * toName: Whom the music is sent to.
-         * mode: Fancy modes for drawing.
          */
-        public static void ScoreCreation(string sourcePath, string resultFilePath, float[] testMusic, int size, string name, string fromName, string toName, int mode = 1)
+        void ScoreCreation(string resultFilePath, float[] testMusic, int size, string name)
         {
-            imagePath = sourcePath + "sign.png";
-            Document document = new Document();
+            document = new Document();
             PdfWriter writer = PdfWriter.GetInstance(document, new FileStream(resultFilePath, FileMode.OpenOrCreate));
             
             document.Open();
             document.AddTitle("Hello World");
             document.AddSubject("Music Score");
-
+            
+            float right = document.Right;
+            float top = document.Top;
+            float rightMargin = document.RightMargin;
+            float topMargin = document.TopMargin;
             // A4 size: 842 595
-            Font nameFont = new Font(Font.FontFamily.COURIER, 32f, Font.NORMAL, new BaseColor(0, 128, 128));
+            Font nameFont = new Font(Font.FontFamily.TIMES_ROMAN, 32f, Font.NORMAL, BaseColor.BLACK);
             Paragraph musicName = new Paragraph(name, nameFont);
             musicName.Alignment = Element.ALIGN_CENTER;
             document.Add(musicName);
 
             // Drawing content container.
             PdfContentByte content = writer.DirectContent;
+            blankLine();
 
-            Font desFont = new Font(Font.FontFamily.TIMES_ROMAN, 16f, Font.NORMAL, new BaseColor(128, 128, 255));
-            
-            // Fancy mode 1: The song is sent to A from B.
-            if (mode == 1)
-            {
-                string des = "This piece of music is sent from " + fromName + " to " + toName + ",\nexpressing the unconditional love.";
-                Paragraph description = new Paragraph(des, desFont);
-                description.Alignment = Element.ALIGN_CENTER;
-                document.Add(description);
+            // Descriptions.
+            string copyRight = "Presented to you by Mr. Chorder.";
+            Font copyRightFont = new Font(Font.FontFamily.TIMES_ROMAN, 12f, Font.ITALIC, BaseColor.GRAY);
+            Paragraph description = new Paragraph(copyRight, copyRightFont);
+            description.Alignment = Element.ALIGN_CENTER;
+            document.Add(description);
 
-                string copyRight = "Presented to you by Mr. Chorder.";
-                description = new Paragraph(copyRight, new Font(Font.FontFamily.TIMES_ROMAN, 12f, Font.ITALIC, new BaseColor(128, 128, 128)));
-                description.Alignment = Element.ALIGN_CENTER;
-                document.Add(description);
-
-                Image corner1 = Image.GetInstance(sourcePath + "corner.png");
-                corner1.SetAbsolutePosition(0, 0);
-                corner1.ScaleAbsoluteHeight(50f * lineSpace);
-                corner1.ScaleAbsoluteWidth(50f * lineSpace);
-                content.AddImage(corner1);
-            }
+            // Decorations.
+            Image corner = Image.GetInstance(cornerPath);
+            corner.SetAbsolutePosition(0, 0);
+            corner.ScaleAbsoluteHeight(50f * lineSpace);
+            corner.ScaleAbsoluteWidth(50f * lineSpace);
+            content.AddImage(corner);
 
             // Draw everything.
             DrawFromArray(content, testMusic, size);
             
             document.Close();
+        }
+
+        private void blankLine()
+        {
+            document.Add(new Paragraph(" "));
         }
 
         /* Draw the scores from an array.
@@ -81,7 +86,7 @@ namespace PDF
          * count: Number of bars in one line.
          * tempo: Number of notes in one bar.
          */
-        static void DrawFromArray(PdfContentByte content, float[] musicArray, int size, int count = defaultCount, float tempo = defaultTempo)
+        private void DrawFromArray(PdfContentByte content, float[] musicArray, int size, int count = defaultBarCount, float tempo = defaultTempo)
         {
             float beginHeight = defaultBeginHeight;
             float beginLeft = defaultBeginLeft;
@@ -94,10 +99,10 @@ namespace PDF
             // Music speed.
             content.BeginText();
             content.SetFontAndSize(BaseFont.CreateFont(BaseFont.HELVETICA_BOLD, BaseFont.CP1250, BaseFont.NOT_EMBEDDED), 10);
-            content.SetTextMatrix(beginLeft, PageSize.A4.Height - beginHeight + 3 * lineSpace - intervalHeight);
+            content.SetTextMatrix(beginLeft, PageSize.A4.Height - beginHeight + 3.5f * lineSpace - intervalHeight);
             content.ShowText("Moderate       = 120");
             content.EndText();
-            DrawOneScore(content, beginLeft + 14 * headSpace, beginHeight - 6.5f * lineSpace + intervalHeight, 2);
+            DrawOneScore(content, beginLeft + 14 * headSpace, beginHeight - 7 * lineSpace + intervalHeight, 3);
             // Music tempo.
             content.BeginText();
             content.SetFontAndSize(BaseFont.CreateFont(BaseFont.COURIER_BOLD, BaseFont.CP1252, BaseFont.NOT_EMBEDDED), 16);
@@ -113,7 +118,7 @@ namespace PDF
                 {
                     line++;
                     // Draw the sign.
-                    Image sign = Image.GetInstance(imagePath);
+                    Image sign = Image.GetInstance(signPath);
                     sign.SetAbsolutePosition(beginLeft - 18, PageSize.A4.Height - (beginHeight + line * intervalHeight + 5 * lineSpace));
                     sign.ScaleAbsoluteHeight(6 * lineSpace);
                     sign.ScaleAbsoluteWidth(3.5f * lineSpace);
@@ -152,7 +157,7 @@ namespace PDF
          * number: Tone.
          * flag: Whether needs half tone.
          */
-        static void DrawOneScore(PdfContentByte content, float left, float up, float number, bool flag = true)
+        private void DrawOneScore(PdfContentByte content, float left, float up, float number, bool flag = true)
         {
             // TODO(allenxie): Deal with flag == false.
             up = PageSize.A4.Height - up;
@@ -209,7 +214,7 @@ namespace PDF
          * count: Number of bars.
          * height: Space between lines.
          */
-        static void DrawFiveLines(PdfContentByte content, float left, float right, float up, int count, float height = lineSpace)
+        private void DrawFiveLines(PdfContentByte content, float left, float right, float up, int count, float height = lineSpace)
         {
             up = PageSize.A4.Height - up;
             content.SetColorStroke(BaseColor.BLACK);
