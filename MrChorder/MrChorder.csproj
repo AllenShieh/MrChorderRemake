@@ -175,6 +175,10 @@
       <Project>{6172d361-672d-4276-9a77-f6145a80f341}</Project>
       <Name>ToPDF</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Training\Training.csproj">
+      <Project>{42607aba-4d78-405b-a4dc-16025e815844}</Project>
+      <Name>Training</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />

@@ -7,8 +7,22 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 
+// SVM must have a class of 0.
+/* do = 0
+ * re = 1
+ * mi = 2
+ * fa = 3
+ * so = 4
+ * la = 5
+ * si = 6
+ * do = 7
+ */
+
 namespace Training
 {
+    // TODO(allenxie): Support for half note (#, b).
+    // Example:
+    // do = 0, do_# = 0.3, re_b = 0.7, re = 1.
     public class LearningModel
     {
         private MulticlassSupportVectorMachine<Gaussian> machine;

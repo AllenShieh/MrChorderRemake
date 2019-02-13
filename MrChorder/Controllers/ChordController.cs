@@ -2,13 +2,14 @@
 using System.Web.Mvc;
 using PDF;
 using OnsetDetection;
+using Training;
 
 namespace MrChorder.Controllers
 {
     public class ChordController : Controller
     {
         private static string filename;
-        private static string wavFile;
+        private static string musicname;
 
         public ActionResult Index()
         {
@@ -22,13 +23,13 @@ namespace MrChorder.Controllers
             foreach (string eachfile in Request.Files)
             {
                 HttpPostedFileBase file = Request.Files[eachfile] as HttpPostedFileBase;
-                string path = System.IO.Path.Combine(Server.MapPath("~/Upload"), System.IO.Path.GetFileName(file.FileName));
+                string path = System.IO.Path.Combine(Server.MapPath("~\\Upload\\"), System.IO.Path.GetFileName(file.FileName));
                 filename = path;
                 file.SaveAs(path);
             }
-            wavFile = filename.Substring(filename.LastIndexOf('\\') + 1, filename.Length - filename.LastIndexOf('\\') - 5);
+            musicname = filename.Substring(filename.LastIndexOf('\\') + 1, filename.Length - filename.LastIndexOf('\\') - 5);
             // Delete previously generated file.
-            string genPath = System.IO.Path.Combine(Server.MapPath("~/Generate"), System.IO.Path.GetFileName("AnalyseResult.pdf"));
+            string genPath = System.IO.Path.Combine(Server.MapPath("~\\Generate\\"), System.IO.Path.GetFileName("AnalyseResult.pdf"));
             if (System.IO.File.Exists(genPath))
             {
                 System.IO.File.Delete(genPath);
@@ -41,19 +42,22 @@ namespace MrChorder.Controllers
         public void SendFile()
         {
             // Process file.
-            string[] nameElements = wavFile.Split('_');
-
-            string resultFilePath = System.IO.Path.Combine(Server.MapPath("~/Generate/"), System.IO.Path.GetFileName("AnalyseResult.pdf"));
-            string imgPath = System.IO.Path.Combine(Server.MapPath("~/Images/"));
+            string resultFilePath = System.IO.Path.Combine(Server.MapPath("~\\Generate\\"), System.IO.Path.GetFileName("AnalyseResult.pdf"));
             
             while (!System.IO.File.Exists(resultFilePath))
             {
                 // TODO(allenxie): Fancy work on filename processing.
-                /*
-                OnsetDetector od = new OnsetDetector(filename);
-                float[] notes = od.GenerateNotes();
-                ToPDF.ScoreCreation(imgPath, resultFilePath, notes, notes.Length, (nameElements.Length >= 1) ? nameElements[0] : "UndefinedChordName", (nameElements.Length >= 2) ? nameElements[1] : "Anonymous", (nameElements.Length >= 3) ? nameElements[2] : "Unpredictable Nature");
-                */
+                double[][] inputs = { };
+                int[] outputs = { };
+                LearningModel svm = new LearningModel(inputs, outputs); // Pre-trained
+                OnsetDetector od = new OnsetDetector(filename, svm);
+                int[] notes = od.GenerateNotes();
+                float[] music = new float[notes.Length];
+                for(int i = 0; i < notes.Length; i++)
+                {
+                    music[i] = notes[i] + 1; // Sync Training module and ToPDF module
+                }
+                ToPDF PDFGenerator = new ToPDF(resultFilePath, music, music.Length, musicname);
             }
             Response.Write("Return file successfully!");
             Response.End();

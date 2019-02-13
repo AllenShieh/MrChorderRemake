@@ -2,6 +2,16 @@
 using iTextSharp.text.pdf;
 using System.IO;
 
+/* do = 1
+ * re = 2
+ * mi = 3
+ * fa = 4
+ * so = 5
+ * la = 6
+ * si = 7
+ * do = 8
+ */
+
 namespace PDF
 {
     public class ToPDF
@@ -150,12 +160,12 @@ namespace PDF
             }
         }
 
-        /* Draw one note.
+        /* Draw one note, do = 1.
          * content: Drawing content container.
          * left: Beginning position.
          * up: Beginning position.
          * number: Tone.
-         * flag: Whether needs half tone.
+         * flag: For additional support in the future.
          */
         private void DrawOneScore(PdfContentByte content, float left, float up, float number, bool flag = true)
         {
@@ -166,17 +176,17 @@ namespace PDF
             content.SetColorFill(BaseColor.BLACK);
             content.Circle(left, position, scoreRadius);
             content.Fill();
-            // Vertical line
+            // Vertical line (0.5 is for good-looking)
             if (number < 8)
             {
-                content.MoveTo(left + scoreRadius, position);
-                content.LineTo(left + scoreRadius, position + 3 * lineSpace);
+                content.MoveTo(left + scoreRadius - 0.5, position);
+                content.LineTo(left + scoreRadius - 0.5, position + 3 * lineSpace);
                 content.Stroke();
             }
             else
             {
-                content.MoveTo(left - scoreRadius, position);
-                content.LineTo(left - scoreRadius, position - 3 * lineSpace);
+                content.MoveTo(left - scoreRadius + 0.5, position);
+                content.LineTo(left - scoreRadius + 0.5, position - 3 * lineSpace);
                 content.Stroke();
             }
             // If need addition lateral line
