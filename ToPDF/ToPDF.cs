@@ -156,7 +156,7 @@ namespace PDF
                 {
                     c = (c + 1) % count;
                 }
-                DrawOneScore(content, beginLeft + c * width + widthScore * (i % ((int)tempo) + 1), beginHeight + line * intervalHeight, musicArray[i]);
+                DrawOneScore(content, beginLeft + c * width + widthScore * (i % ((int)tempo) + 1), beginHeight + line * intervalHeight, musicArray[i], 0.5);
             }
         }
 
@@ -165,29 +165,81 @@ namespace PDF
          * left: Beginning position.
          * up: Beginning position.
          * number: Tone.
-         * flag: For additional support in the future.
+         * length: Length of the note.
          */
-        private void DrawOneScore(PdfContentByte content, float left, float up, float number, bool flag = true)
+        private void DrawOneScore(PdfContentByte content, float left, float up, float number, double length = 1)
         {
             // TODO(allenxie): Deal with flag == false.
             up = PageSize.A4.Height - up;
             float position = up - 5 * lineSpace + (number - 1) * lineSpace / 2;
             // Circle
             content.SetColorFill(BaseColor.BLACK);
-            content.Circle(left, position, scoreRadius);
+            // content.Circle(left, position, scoreRadius);
+            content.Ellipse(left - 4, position - 3, left + 4, position + 3);
             content.Fill();
             // Vertical line (0.5 is for good-looking)
             if (number < 8)
             {
-                content.MoveTo(left + scoreRadius - 0.5, position);
-                content.LineTo(left + scoreRadius - 0.5, position + 3 * lineSpace);
+                content.MoveTo(left + scoreRadius + 0.5, position);
+                content.LineTo(left + scoreRadius + 0.5, position + 3.5 * lineSpace);
                 content.Stroke();
+                if (length == 0.5 || length == 0.75)
+                {
+                    double left_start = left + scoreRadius + 0.5;
+                    double up_start = position + 3.5 * lineSpace - 0.5;
+                    content.MoveTo(left_start, up_start);
+                    content.CurveTo(left_start + 1, up_start - 4, left_start + 7, up_start - 7, left_start + 4, up_start - 12);
+                    content.Stroke();
+                    if (length == 0.75)
+                    {
+                        double dot_position = (number % 2 == 0) ? position : position + 0.5 * lineSpace;
+                        content.Circle(left_start + 3, dot_position, 1);
+                        content.Fill();
+                    }
+                }
+                if (length == 0.25)
+                {
+                    double left_start = left + scoreRadius + 0.5;
+                    double up_start = position + 3.5 * lineSpace - 0.5;
+                    content.MoveTo(left_start, up_start);
+                    content.CurveTo(left_start + 1, up_start - 3, left_start + 6, up_start - 6, left_start + 3, up_start - 9);
+                    content.Stroke();
+                    up_start = up_start - 4;
+                    content.MoveTo(left_start, up_start);
+                    content.CurveTo(left_start + 1, up_start - 3, left_start + 6, up_start - 6, left_start + 3, up_start - 9);
+                    content.Stroke();
+                }
             }
             else
             {
-                content.MoveTo(left - scoreRadius + 0.5, position);
-                content.LineTo(left - scoreRadius + 0.5, position - 3 * lineSpace);
+                content.MoveTo(left - scoreRadius - 0.5, position);
+                content.LineTo(left - scoreRadius - 0.5, position - 3.5 * lineSpace);
                 content.Stroke();
+                if (length == 0.5 || length == 0.75)
+                {
+                    double left_start = left - scoreRadius - 0.5;
+                    double up_start = position - 3.5 * lineSpace + 0.5;
+                    content.MoveTo(left_start, up_start);
+                    content.CurveTo(left_start + 1, up_start + 4, left_start + 7, up_start + 7, left_start + 4, up_start + 12);
+                    content.Stroke();
+                    if (length == 0.75)
+                    {
+                        double dot_position = (number % 2 == 0) ? position : position + 0.5 * lineSpace;
+                        content.Circle(left_start + 8, dot_position, 1);
+                        content.Fill();
+                    }
+                }if (length == 0.25)
+                {
+                    double left_start = left - scoreRadius - 0.5;
+                    double up_start = position - 3.5 * lineSpace + 0.5;
+                    content.MoveTo(left_start, up_start);
+                    content.CurveTo(left_start + 1, up_start + 3, left_start + 6, up_start + 6, left_start + 3, up_start + 9);
+                    content.Stroke();
+                    up_start = up_start + 4;
+                    content.MoveTo(left_start, up_start);
+                    content.CurveTo(left_start + 1, up_start + 3, left_start + 6, up_start + 6, left_start + 3, up_start + 9);
+                    content.Stroke();
+                }
             }
             // If need addition lateral line
             if (number < 2 && ((int)number % 2 == 0))
