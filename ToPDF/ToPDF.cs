@@ -29,7 +29,7 @@ namespace PDF
         static string cornerPath = "C:\\UCLA\\MrChorder-master\\MrChorder\\MrChorder\\Images\\corner.png";
         Document document;
 
-        public ToPDF(string resultFilePath, float[] testMusic, int size, string name)
+        public ToPDF(string resultFilePath, double[][] testMusic, int size, string name)
         {
             ScoreCreation(resultFilePath, testMusic, size, name);
         }
@@ -41,7 +41,7 @@ namespace PDF
          * size: Number of scores.
          * name: Music name.
          */
-        void ScoreCreation(string resultFilePath, float[] testMusic, int size, string name)
+        void ScoreCreation(string resultFilePath, double[][] testMusic, int size, string name)
         {
             document = new Document();
             PdfWriter writer = PdfWriter.GetInstance(document, new FileStream(resultFilePath, FileMode.OpenOrCreate));
@@ -96,7 +96,7 @@ namespace PDF
          * count: Number of bars in one line.
          * tempo: Number of notes in one bar.
          */
-        private void DrawFromArray(PdfContentByte content, float[] musicArray, int size, int count = defaultBarCount, float tempo = defaultTempo)
+        private void DrawFromArray(PdfContentByte content, double[][] musicArray, int size, int count = defaultBarCount, float tempo = defaultTempo)
         {
             float beginHeight = defaultBeginHeight;
             float beginLeft = defaultBeginLeft;
@@ -156,7 +156,7 @@ namespace PDF
                 {
                     c = (c + 1) % count;
                 }
-                DrawOneScore(content, beginLeft + c * width + widthScore * (i % ((int)tempo) + 1), beginHeight + line * intervalHeight, musicArray[i], 0.5);
+                DrawOneScore(content, beginLeft + c * width + widthScore * (i % ((int)tempo) + 1), beginHeight + line * intervalHeight, musicArray[i][0], musicArray[i][1]);
             }
         }
 
@@ -167,11 +167,11 @@ namespace PDF
          * number: Tone.
          * length: Length of the note.
          */
-        private void DrawOneScore(PdfContentByte content, float left, float up, float number, double length = 1)
+        private void DrawOneScore(PdfContentByte content, float left, float up, double number, double length = 1)
         {
             // TODO(allenxie): Deal with flag == false.
             up = PageSize.A4.Height - up;
-            float position = up - 5 * lineSpace + (number - 1) * lineSpace / 2;
+            float position = up - 5 * lineSpace + ((float)number - 1) * lineSpace / 2;
             // Circle
             content.SetColorFill(BaseColor.BLACK);
             // content.Circle(left, position, scoreRadius);

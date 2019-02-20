@@ -51,11 +51,10 @@ namespace MrChorder.Controllers
                 int[] outputs = { };
                 LearningModel svm = new LearningModel(inputs, outputs); // Pre-trained
                 OnsetDetector od = new OnsetDetector(filename, svm);
-                int[] notes = od.GenerateNotes();
-                float[] music = new float[notes.Length];
-                for(int i = 0; i < notes.Length; i++)
+                double[][] music = od.GenerateNotes();
+                for (int i = 0; i < music.Length; i++)
                 {
-                    music[i] = notes[i] + 1; // Sync Training module and ToPDF module
+                    music[i][0] = music[i][0] + 1; // Sync Training module and ToPDF module
                 }
                 ToPDF PDFGenerator = new ToPDF(resultFilePath, music, music.Length, musicname);
             }

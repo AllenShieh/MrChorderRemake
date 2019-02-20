@@ -11,13 +11,15 @@ namespace ToPDFSample
         {
 
             // Array test
-            float[] testMusic;
-            testMusic = new float[50];
-            for (int n = 0; n < 50; n++)
+            float[][] testMusic;
+            testMusic = new float[5][];
+            for(int i = 0; i < 5; i++)
             {
-                testMusic[n] = n % 20 - 4;
+                testMusic[i] = new float[2];
+                testMusic[i][0] = i;
+                testMusic[i][1] = (float)i / 4;
             }
-            int size = 50;
+            int size = 5;
             ToPDF PDFGenerator = new ToPDF(destPath+"test.pdf", testMusic, size, "SONG_NAME");
 
         }

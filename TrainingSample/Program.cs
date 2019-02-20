@@ -50,10 +50,15 @@ namespace TrainingSample
             Console.WriteLine("Testing.");
             string testFile = "C:\\UCLA\\MrChorder-master\\MrChorder\\Training\\LearningModelData\\t.wav";
             OnsetDetector testDetector = new OnsetDetector(testFile, svm);
-            int[] notes = testDetector.GenerateNotes();
-            for (int j = 0; j < notes.Length; j++)
+            double[][] notes = testDetector.GenerateNotes();
+            for(int i = 0; i < notes.Length; i++)
             {
-                Console.Write(notes[j]);
+                for(int j = 0; j < notes[i].Length; j++)
+                {
+                    Console.Write(notes[i][j]);
+                    Console.Write("\t");
+                }
+                Console.Write("\n");
             }
             Console.Write("\n");
 

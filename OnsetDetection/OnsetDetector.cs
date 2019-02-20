@@ -240,7 +240,7 @@ namespace OnsetDetection
             return noteLength;
         }
         
-        public int[] GenerateNotes()
+        public double[][] GenerateNotes()
         {
             int[] onsetTime = new int[M];
             int[] peakTime = PeakPick();
@@ -253,15 +253,18 @@ namespace OnsetDetection
                 }
             }
 
-            int[] notes = new int[peakCount];
-            double[] noteLength = generateNoteLength(onsetTime, peakCount);
-            for(int i = 0; i < notes.Length; i++)
+            double[][] result = new double[peakCount][];
+            double[] note_length = generateNoteLength(onsetTime, peakCount);
+            for(int i = 0; i < peakCount; i++)
             {
                 double[][] noteData = audio.GetNoteFAData(onsetTime[i]);
                 int[] predict = learningModel.GetNote(noteData);
-                notes[i] = GetMostMember(predict);
+                result[i] = new double[2];
+                // TODO(allenxie): Handle int to float correctly or support float prediction.
+                result[i][0] = GetMostMember(predict);
+                result[i][1] = note_length[i];
             }
-            return notes;
+            return result;
         }
 
         // Generate data in the form of frequency/amplitude.
