@@ -1,6 +1,7 @@
 ﻿using iTextSharp.text;
 using iTextSharp.text.pdf;
 using System.IO;
+using System.Collections.Generic;
 
 /* do = 1
  * re = 2
@@ -106,6 +107,7 @@ namespace PDF
             int c = -1;
             float width = (endRight - beginLeft) / count;
             float widthScore = (endRight - beginLeft) / (count * (tempo + 1));
+            float scoreStart = beginLeft + widthScore;
             // Music speed.
             content.BeginText();
             content.SetFontAndSize(BaseFont.CreateFont(BaseFont.HELVETICA_BOLD, BaseFont.CP1250, BaseFont.NOT_EMBEDDED), 10);
@@ -122,8 +124,58 @@ namespace PDF
             content.ShowText("4");
             content.EndText();
             // Draw the scores.
-            for (int i = 0; i < size; i++)
+            double[][] formalMusicArray = MusicFormalization(musicArray, tempo);
+            float curScoreStart = scoreStart;
+            float shortEndRight = 0;
+            double curBarLength = 0;
+            for (int i = 0; i < formalMusicArray.Length; i++)
             {
+                if (curScoreStart == scoreStart)
+                {
+                    line++;
+                    Image sign = Image.GetInstance(signPath);
+                    sign.SetAbsolutePosition(beginLeft - 18, PageSize.A4.Height - (beginHeight + line * intervalHeight + 5 * lineSpace));
+                    sign.ScaleAbsoluteHeight(6 * lineSpace);
+                    sign.ScaleAbsoluteWidth(3.5f * lineSpace);
+                    content.AddImage(sign);
+                }
+                DrawOneScore(content, curScoreStart, beginHeight + line * intervalHeight, formalMusicArray[i][0], formalMusicArray[i][1]);
+                curBarLength += formalMusicArray[i][1];
+                curScoreStart += widthScore;
+                if (i == formalMusicArray.Length - 1)
+                {
+                    shortEndRight = curScoreStart;
+                    DrawFiveLines(content, beginLeft, shortEndRight + 2, beginHeight + line * intervalHeight);
+                    content.MoveTo(curScoreStart, PageSize.A4.Height - (beginHeight + line * intervalHeight));
+                    content.LineTo(curScoreStart, PageSize.A4.Height - (beginHeight + line * intervalHeight) - lineSpace * 4);
+                    content.Stroke();
+                }
+                else
+                {
+                    if (curScoreStart >= endRight)
+                    {
+                        DrawFiveLines(content, beginLeft, endRight, beginHeight + line * intervalHeight);
+                        curScoreStart = scoreStart;
+                    }
+                    if (curBarLength == tempo)
+                    {
+                        if (curScoreStart + widthScore >= endRight)
+                        {
+                            DrawFiveLines(content, beginLeft, endRight, beginHeight + line * intervalHeight);
+                            curScoreStart = scoreStart;
+                        }
+                        else if (curScoreStart != scoreStart)
+                        {
+                            content.MoveTo(curScoreStart, PageSize.A4.Height - (beginHeight + line * intervalHeight));
+                            content.LineTo(curScoreStart, PageSize.A4.Height - (beginHeight + line * intervalHeight) - lineSpace * 4);
+                            content.Stroke();
+                            curScoreStart += widthScore;
+                        }
+                        curBarLength = 0;
+                    }
+                }
+                //--------------------------------------------------
+                /*
                 if (i % ((int)count * tempo) == 0)
                 {
                     line++;
@@ -157,7 +209,58 @@ namespace PDF
                     c = (c + 1) % count;
                 }
                 DrawOneScore(content, beginLeft + c * width + widthScore * (i % ((int)tempo) + 1), beginHeight + line * intervalHeight, musicArray[i][0], musicArray[i][1]);
+                */
             }
+        }
+
+        /* Normalize the music array, arranging them into different bars based on the tempo.
+         * Returned value includes info on those that are divided into two bars.
+         */
+        double[][] MusicFormalization(double[][] musicArray, float tempo)
+        {
+            List<double[]> tempList = new List<double[]>();
+            double curLength = 0;
+            for (int i = 0; i < musicArray.Length; i++)
+            {
+                if (curLength + musicArray[i][1] > tempo)
+                {
+                    double firstPart = tempo - curLength;
+                    double secondPart = musicArray[i][1] - firstPart;
+                    curLength = secondPart;
+                    double[] firstNote = new double[3];
+                    firstNote[0] = musicArray[i][0];
+                    firstNote[1] = firstPart;
+                    firstNote[2] = 1;
+                    tempList.Add(firstNote);
+                    double[] secondNote = new double[3];
+                    secondNote[0] = musicArray[i][0];
+                    secondNote[1] = secondPart;
+                    secondNote[2] = 1;
+                    tempList.Add(secondNote);
+                }
+                else
+                {
+                    curLength += musicArray[i][1];
+                    double[] formalNote = new double[3];
+                    formalNote[0] = musicArray[i][0];
+                    formalNote[1] = musicArray[i][1];
+                    formalNote[2] = 0;
+                    tempList.Add(formalNote);
+                    if (curLength == 4)
+                    {
+                        curLength = 0;
+                    }
+                }
+            }
+            double[][] result = new double[tempList.Count][];
+            for (int i = 0; i < result.Length; i++)
+            {
+                result[i] = new double[3];
+                result[i][0] = tempList[i][0];
+                result[i][1] = tempList[i][1];
+                result[i][2] = tempList[i][2];
+            }
+            return result;
         }
 
         /* Draw one note, do = 1.
@@ -165,7 +268,7 @@ namespace PDF
          * left: Beginning position.
          * up: Beginning position.
          * number: Tone.
-         * length: Length of the note.
+         * length: Length of the note, currently support 1, 0.75, 0.5, 0.25.
          */
         private void DrawOneScore(PdfContentByte content, float left, float up, double number, double length = 1)
         {
@@ -276,7 +379,7 @@ namespace PDF
          * count: Number of bars.
          * height: Space between lines.
          */
-        private void DrawFiveLines(PdfContentByte content, float left, float right, float up, int count, float height = lineSpace)
+        private void DrawFiveLines(PdfContentByte content, float left, float right, float up, int count = defaultBarCount, float height = lineSpace)
         {
             up = PageSize.A4.Height - up;
             content.SetColorStroke(BaseColor.BLACK);
@@ -297,12 +400,14 @@ namespace PDF
             content.MoveTo(right, up);
             content.LineTo(right, up - height * 4);
             // Middle lines.
+            /*
             float width = (right - left) / count;
             for (int i = 1; i < count; i++)
             {
                 content.MoveTo(left + width * i, up);
                 content.LineTo(left + width * i, up - height * 4);
             }
+            */
             content.Stroke();
         }
     }

@@ -11,16 +11,22 @@ namespace ToPDFSample
         {
 
             // Array test
-            float[][] testMusic;
-            testMusic = new float[5][];
-            for(int i = 0; i < 5; i++)
+            double[][] testMusic;
+            testMusic = new double[20][];
+            for(int i = 0; i < testMusic.Length; i++)
             {
-                testMusic[i] = new float[2];
-                testMusic[i][0] = i;
-                testMusic[i][1] = (float)i / 4;
+                testMusic[i] = new double[2];
+                testMusic[i][0] = i % 10;
+                testMusic[i][1] = 1;
+                /*
+                testMusic[i][1] = (double)(i % 4) / 4;
+                if (testMusic[i][1] == 0)
+                {
+                    testMusic[i][1] = 1;
+                }
+                */
             }
-            int size = 5;
-            ToPDF PDFGenerator = new ToPDF(destPath+"test.pdf", testMusic, size, "SONG_NAME");
+            ToPDF PDFGenerator = new ToPDF(destPath+"test.pdf", testMusic, testMusic.Length, "SONG_NAME");
 
         }
     }
